@@ -301,15 +301,13 @@ def NQGenerator():
     and genetic algorithms."""
     return NQueens(8)
 
-
-
 if __name__ == "__main__":
     # Example call to hill-climbing with random 8x8 N-Queens problem
-    # startState = NQueens(8)
+    # startState = NQueens(16)
     # hillClimb(startState)
 
     # Example call to stochastic hill-climbing with random 8x8 N-Queens problem
-    # startState = NQueens(8)
+    # startState = NQueens(4)
     # stochHillClimb(startState)
 
     # Example call to simulated annealing with random 8x8 N-Queens problem
@@ -320,4 +318,4 @@ if __name__ == "__main__":
     # beamSearch(NQGenerator)
 
     # Example call to genetic algorithms with N-Queens generator
-    geneticAlg(NQGenerator)
+    # geneticAlg(NQGenerator)

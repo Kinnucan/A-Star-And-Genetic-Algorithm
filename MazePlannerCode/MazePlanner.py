@@ -10,7 +10,7 @@ from tkinter import *
 import tkinter.filedialog as tkFileDialog
 
 from SearchSolver import BestFirstSearchSolver, NoCostSearchSolver
-from  MazeStateAdvisors import MazeTaskAdvisor, UCSMazeAdvisor, GreedyMazeAdvisor, AStarMazeAdvisor  # TODO: Add Weighted A* task advisor here
+from  MazeStateAdvisors import MazeTaskAdvisor, UCSMazeAdvisor, GreedyMazeAdvisor, AStarMazeAdvisor, WeightedAStarMazeAdvisor  # TODO: Add Weighted A* task advisor here
 from MazeInfo import MazeInfo
 
 
@@ -600,7 +600,9 @@ class MazeGUI:
             taskAdvisor = AStarMazeAdvisor(self.maze, sRow, sCol, gRow, gCol)
             self.currentSearcher = BestFirstSearchSolver(taskAdvisor)
         elif self.currentSearch == 'weightedastar':
-            self._postMessage("Weighted A* is not implemented yet, you must do this!")
+            # self._postMessage("Weighted A* is not implemented yet, you must do this!")
+            taskAdvisor = WeightedAStarMazeAdvisor(self.maze, sRow, sCol, gRow, gCol)
+            self.currentSearcher = BestFirstSearchSolver(taskAdvisor)
             # TODO: Here, create a weighted A* task advisor and set up the search solver (analogous to the A* one)
         self.currentSearcher.initSearch()
         self.disableEdit()

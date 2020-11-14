@@ -264,7 +264,72 @@ class AStarMazeAdvisor(MazeTaskAdvisor):
 #  optional input to its __init__, the weight and it should use that weight to multiply the heuristic value in computing the cost.
 #  Otherwise it should behave just like the A* Maze State Class (you might modify the __str__ method so it prints better
 
+class WeightedAStarMazeState(MazeState):
+    """This represents the state of a search in a maze.  It does not
+represent the maze, just the current location in the maze, and the
+series of cells that have been traversed to get to this location.  That
+is represented in the pathToMe instance variable inherited from the parent
+class.  The cost is determined externally."""
+
+    def __init__(self, row, col, path=None, costToHere=None, costToGoal=None, weight=10):
+        """Given the row and column, the current path, and the two costs (cost so far and heuristic
+        cost to come, this creates a state/node for the search"""
+
+        MazeState.__init__(self, row, col, path, costToHere + costToGoal)
+        self.costToHere = costToHere
+        self.costToGoal = costToGoal * weight
+        self.myCost = self.costToHere + self.costToGoal
+
+    def getCostToHere(self):
+        """Return the cost so far"""
+        return self.costToHere
+
+    def getCostToGoal(self):
+        """Return the heuristic estimate cost to the goal"""
+        return self.costToGoal
+
+    def __str__(self):
+        """Create a string for printing that contains the row, col plus path and costs"""
+        strng = "[" + str(self.row) + ", " + str(self.col) + "]"
+        strng += "  " + str(self.pathToMe) + " (" + str(self.costToHere)
+        strng += " + " + str(self.costToGoal) + ") = " + str(self.myCost)
+        return strng
+
 
 # TODO: For Task 1! Copy the A* Maze Advisor class and make an advisor for the Weighted A* class. Other than using the Weighted A*
 #   states you created above, this should work just like A*
 
+class WeightedAStarMazeAdvisor(MazeTaskAdvisor):
+    """This class is a subclass of the MazeTaskAdvisor. It implements the cost calculations
+    used for A* search, using the AStarState, which maintains both g and h costs. It is intended to
+    be paired with a BestFirstSearchSolver."""
+
+    def _setupInitialState(self, startRow, startCol):
+        """This creates and returns a proper start state for this particular
+        class. In this case, it computes all the two values, g, and h:
+        g = the cost of the starting cell
+        h = the heuristic distance to goal
+        The f cost is automatically computed by the AStarMazeState (f = g + h)
+        """
+        g = self.maze.getWeight(startRow, startCol)
+        h = self._calcDistToGoal(startRow, startCol)
+        return WeightedAStarMazeState(startRow, startCol, [], g, h)
+
+    def _buildNeighborState(self, currState, direction, neighRow, neighCol):
+        """Given the current state and the location of the neighbor, this builds
+        a new state, computing the cost as appropriate for the class.
+        In this case, we need to update both g and h costs for the new state:
+        new g = old g + new cell's weight,
+        new h = distance to goal of new cell"""
+        newPath = currState.getPath()[:]
+        newPath.append(direction)
+        newG = currState.getCostToHere() + self.maze.getWeight(neighRow, neighCol)
+        newH = self._calcDistToGoal(neighRow, neighCol)
+        return WeightedAStarMazeState(neighRow, neighCol, newPath, newG, newH)
+
+    def _calcDistToGoal(self, row, col):
+        """Compute the distance to the goal using the city block metric.  Compute
+        the difference in row values and in column values, and add them up"""
+        yDist = abs(row - self.goalRow)
+        xDist = abs(col - self.goalCol)
+        return xDist + yDist

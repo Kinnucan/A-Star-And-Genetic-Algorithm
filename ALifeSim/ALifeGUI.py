@@ -11,7 +11,7 @@ from tkinter import *
 import tkinter.filedialog as tkFileDialog
 
 from aLifeSim import ALifeSim
-from LocalSearchSolver import RulesetState, HillClimber   # TODO: Add GA searcher here
+from LocalSearchSolver import RulesetState, HillClimber, GASearcher   # TODO: Add GA searcher here
 
 
 class ALifeGUI:
@@ -264,7 +264,7 @@ class ALifeGUI:
         elif self.currentSearch == 'beam':
             pass
         elif self.currentSearch == 'ga':    # TODO: You will need to update this analogous to the HillClimber
-            pass
+            self.currentSearcher = GASearcher(RulesetState(self.evalRulestring, self.maxSteps))
 
         self._disableChanges()
         self._enableSearch()

@@ -172,7 +172,7 @@ class HillClimber(object):
         if verbose:
             print("--------- Count =", self.count, "---------")
             print(self.currState)
-        neighs = self.currState.allNeighbors()     # TODO: Modify the number of neighbors here
+        neighs = self.currState.randomNeighbors(8)    # TODO: Modify the number of neighbors here
         bestNeigh = self.findBestNeighbor(neighs)
         nextValue = bestNeigh.getValue()
         self.currState = bestNeigh
@@ -212,3 +212,55 @@ class HillClimber(object):
 
 # TODO: Implement the Genetic Algorithm searcher modeled on the HillClimber above
 
+class GASearcher(object):
+
+    def __init__(self, stateGen, popSize=30, maxGenerations=2000, crossPerc=0.8, mutePerc=0.01):
+        self.stateGen = stateGen
+
+    # TODO: Implement the rest of the genetic alg from the localSearch.py file in the Queens folder
+
+    def selectParents(states, fitnesses):
+        """given a set of states, repeatedly select parents using roulette selection"""
+        parents = []
+        for i in range(len(states)):
+            nextParentPos = rouletteSelect(fitnesses)
+            parents.append(states[nextParentPos])
+        return parents
+
+    def mateParents(parents, crossoverPerc, mutationPerc):
+        """Given a set of parents, pair them up and cross them together to make
+        new kids"""
+        newPop = []
+        for i in range(0, len(parents), 2):
+            p1 = parents[i]
+            p2 = parents[i + 1]
+            doCross = random.random()
+            if doCross < crossoverPerc:
+                n1, n2 = p1.crossover(p2)
+                newPop.append(n1)
+                newPop.append(n2)
+            else:
+                newPop.append(p1.copyState())
+                newPop.append(p2.copyState())
+        for i in range(len(newPop)):
+            nextOne = newPop[i]
+            doMutate = random.random()
+            if doMutate <= mutationPerc:
+                newPop[i] = nextOne.makeRandomMove()
+        return newPop
+
+    def rouletteSelect(valueList):
+        """takes in a list giving the values for a set of entities.  It randomly
+    selects one of the positions in the list by treating the values as a kind of
+    probability distribution and sampling from that distribution.  Each entity gets
+    a piece of a roulette wheel whose size is based on comparative value: high-value
+    entities have the highest probability of being selected, but low-value entities have
+    *some* probability of being selected."""
+        totalValues = sum(valueList)
+        pick = random.random() * totalValues
+        s = 0
+        for i in range(len(valueList)):
+            s += valueList[i]
+            if s >= pick:
+                return i
+        return len(valueList) - 1

@@ -115,6 +115,8 @@ class BestFirstSearchSolver(object):
                 if verbose:
                     print("    Neighbor was already in explored, cost is lower now", n, visitedMatch.getCost(), n.getCost())
                 self.fringe.insert(n, n.getCost())
+                self.visited.discard(visitedMatch)
+                self.visited.add(n)
                 newNeighbors.append(n)
                 self.nodesCreated += 1
             elif fringeMatch and fringeMatch.getCost() > n.getCost():

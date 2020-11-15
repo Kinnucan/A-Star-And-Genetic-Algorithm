@@ -13,7 +13,7 @@ from SearchSolver import BestFirstSearchSolver, NoCostSearchSolver
 from  MazeStateAdvisors import MazeTaskAdvisor, UCSMazeAdvisor, GreedyMazeAdvisor, AStarMazeAdvisor, WeightedAStarMazeAdvisor  # TODO: Add Weighted A* task advisor here
 from MazeInfo import MazeInfo
 
-
+showFringeCosts = False
 
 class MazeGUI:
     """Set up and manage all the variables for the GUI interface."""
@@ -335,6 +335,8 @@ class MazeGUI:
             for col in range(numCols):
                 (x1, y1, x2, y2) = self._posToCoords(row, col)
                 currId = self.canvas.create_rectangle(x1, y1, x2, y2)
+                if showFringeCosts:
+                    self.canvas.create_text((x2+x1)/2,(y2+y1)/2,text="-")
                 self.idToPos[currId] = (row, col)
                 self.posToId[row, col] = currId
         self._displayMazeGrid()
@@ -349,6 +351,8 @@ class MazeGUI:
                 (outlineColor, cellColor) = self._determineColor((row, col))
                 self._setOutlineColor(currId, outlineColor)
                 self._setCellColor(currId, cellColor)
+                if showFringeCosts:
+                    self.canvas.itemconfig(currId+1, text="-")
 
 
 
@@ -628,6 +632,7 @@ class MazeGUI:
         while keepLooping and stepCount > 0:
             keepLooping = self._handleOneStep()
             stepCount -= 1
+        pass
  
 
     def _handleOneStep(self):
@@ -706,6 +711,8 @@ class MazeGUI:
             (fr, fc) = f.getLocation()
             fId = self._posToId(fr, fc)
             self._setCellColor(fId, "light blue")
+            if showFringeCosts:
+                self.canvas.itemconfig(fId+1, text = str(f.getCost()))
         self.canvas.update()
 
         

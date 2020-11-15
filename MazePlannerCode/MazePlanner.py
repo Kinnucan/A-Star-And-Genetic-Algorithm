@@ -539,6 +539,8 @@ class MazeGUI:
             for col in range(self.numCols):
                 currId = self.posToId[row, col]
                 self.canvas.delete(currId)
+                if showFringeCosts:
+                    self.canvas.delete(currId+1)
         self.canvas.update()
         self.posToId = {}
         self.idToPos = {}

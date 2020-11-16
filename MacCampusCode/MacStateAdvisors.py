@@ -138,7 +138,7 @@ class MacTaskAdvisor(object):
         rawNeighs = self.mac.getNeighbors(vertex)
         neighs = []
         for neighLabel in rawNeighs:
-            neighs.append(self._buildNeighborState(state, neighLabel))
+            neighs.append(self._buildNeighborState(state, neighLabel[0]))
         return neighs
 
     def _buildNeighborState(self, currState, neighLabel):
@@ -205,4 +205,4 @@ class AStarMacAdvisor(MacTaskAdvisor):
     def _calcDistToGoal(self, vertexLabel):
         """Compute the distance to the goal using the standard Euclidean metric.  Compute
         the difference in x values and in y values, square each one, add them up, and take the square root"""
-        return self.mac.heuristicDistance(vertexLabel, self.goal)
+        return self.mac.heuristicDist(vertexLabel, self.goal)

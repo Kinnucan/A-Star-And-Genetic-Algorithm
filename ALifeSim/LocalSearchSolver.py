@@ -212,6 +212,93 @@ class HillClimber(object):
 
 # TODO: Implement the Genetic Algorithm searcher modeled on the HillClimber above
 
+class GASearcher:
+    def __init__(self, startState, maxRounds=500):
+        """Sets up the starting state"""
+        self.startState = startState
+        self.maxRounds = maxRounds
+        self.maxValue = startState.getMaxValue()
+        self.currState = startState
+        # This next step is EXPENSIVE!
+        self.currValue = self.currState.getValue()
+        self.count = 0
+        if verbose:
+            print("============= START ==============")
+
+    def getCount(self):
+        """Returns the current count."""
+        return self.count
+
+    def getCurrState(self):
+        """Returns the current state."""
+        return self.currState
+
+    def getCurrValue(self):
+        """Returns the value currently associated with the current state."""
+        return self.currValue
+
+
+    def run(self):
+        """Perform the hill-climbing algorithm, starting with the given start state and going until a local maxima is
+        found or the maximum rounds is reached"""
+        status = None
+
+        while self.currValue < self.maxValue and self.count < self.maxRounds:
+            status = self.step()
+
+            if status == 'optimal' or status == 'local maxima':
+                break
+
+        if verbose:
+            print("============== FINAL STATE ==============")
+            print(self.currState)
+            print("   Number of steps =", self.count)
+            if status == 'optimal':
+                print("  FOUND PERFECT SOLUTION")
+        return self.currValue, self.maxValue, self.count
+
+
+    def step(self):
+        """Runs one step of hill-climbing, generates children and picks the best one, returning it as its value. Also returns
+        a second value that tells if the best child is optimal or not."""
+        self.count += 1
+        if verbose:
+            print("--------- Count =", self.count, "---------")
+            print(self.currState)
+        neighs = self.currState.randomNeighbors(8)    # TODO: Modify the number of neighbors here
+        bestNeigh = self.findBestNeighbor(neighs)
+        nextValue = bestNeigh.getValue()
+        self.currState = bestNeigh
+        self.currValue = nextValue
+        if nextValue == self.maxValue:
+            return 'optimal'
+        if nextValue >= self.currValue:
+            if verbose:
+                print("Best neighbor:")
+                print(bestNeigh)
+            return 'keep going'
+        else:
+            # best is worse than current
+            return 'local maxima'
+
+
+    def findBestNeighbor(self, neighbors):
+        """Given a list of neighbors and values, find and return a neighbor with
+        the best value. If there are multiple neighbors with the same best value,
+        a random one is chosen"""
+        startBest = neighbors[0]
+        print(startBest.ruleString)
+        bestValue = startBest.getValue()
+        bestNeighs = [startBest]
+        for neigh in neighbors[1:]:
+            value = neigh.getValue()
+            if value > bestValue:
+                bestNeighs = [neigh]
+                bestValue = value
+            elif value == bestValue:
+                bestNeighs.append(neigh)
+        bestNeigh = random.choice(bestNeighs)
+        return bestNeigh
 class GASearcher(object):
 
     def __init__(self, stateGen, popSize=30, maxGenerations=2000, crossPerc=0.8, mutePerc=0.01):

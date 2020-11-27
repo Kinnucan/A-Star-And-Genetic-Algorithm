@@ -270,17 +270,6 @@ class GASearcher(object):
         """Returns the value currently associated with the current state."""
         return self.currStates[0].getMaxValue()
 
-    def run1(self):
-        """Perform the hill-climbing algorithm, starting with the given start state and going until a local maxima is
-        found or the maximum rounds is reached"""
-        status = None
-
-        while self.currValue < self.maxValue and self.count < self.maxRounds:
-            status = self.step()
-
-            if status == 'optimal' or status == 'local maxima':
-                break
-
     def run(self):
         status = None
         while self.count < self.maxGenerations:

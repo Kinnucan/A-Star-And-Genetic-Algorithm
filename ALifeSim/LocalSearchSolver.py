@@ -241,7 +241,8 @@ class HillClimber(object):
 
 class GASearcher(object):
 
-    def __init__(self, stateGen, popSize=30, maxGenerations=50, crossPerc=0.8, mutePerc=0.01):
+    def __init__(self, stateGen, popSize=30, maxGenerations=20, crossPerc=0.8, mutePerc=0.01):
+        self.bestOne = 0
         self.stateGen = stateGen
         self.popSize = popSize
         self.maxGenerations = maxGenerations
@@ -269,11 +270,24 @@ class GASearcher(object):
         """Returns the value currently associated with the current state."""
         return self.currStates[0].getMaxValue()
 
+    def run1(self):
+        """Perform the hill-climbing algorithm, starting with the given start state and going until a local maxima is
+        found or the maximum rounds is reached"""
+        status = None
+
+        while self.currValue < self.maxValue and self.count < self.maxRounds:
+            status = self.step()
+
+            if status == 'optimal' or status == 'local maxima':
+                break
+
     def run(self):
-        foundOptimal = False
-        overallBest = self.currStates[0]
-        while (not foundOptimal) and self.count < self.maxGenerations:
-            self.step()
+        status = None
+        while self.count < self.maxGenerations:
+            status = self.step()
+
+            if status == 'optimal':
+                break
 
     def step(self):
         foundOptimal = False
@@ -283,7 +297,7 @@ class GASearcher(object):
         if self.maxFit in fits:  # we have an optimal solution
             pos = fits.index(self.maxFit)
             bestOne = self.currStates[pos]
-            foundOptimal = True
+            return 'optimal'
         else:
             bestLoc = fits.index(max(fits))
             bestOne = self.currStates[bestLoc]
@@ -298,7 +312,8 @@ class GASearcher(object):
             print("  Overall best discovered:")
             print(overallBest)
             print("   Number of steps =", self.count)
-        return bestOne.getValue(), self.maxFit, self.count
+        self.bestOne = overallBest
+        return 'keep going'
 
     # TODO: Implement the rest of the genetic alg from the localSearch.py file in the Queens folder
 

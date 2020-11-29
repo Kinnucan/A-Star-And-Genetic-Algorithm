@@ -31,7 +31,7 @@ class RulesetState(object):
         if ruleString is not None:
             self.ruleString = ruleString
         else:
-            self.ruleString = self._randomRuleset()
+            self.ruleString = self.randomRuleset()
 
 
     def getValue(self):
@@ -95,12 +95,12 @@ class RulesetState(object):
         unrelated to this state."""
         newStates = []
         for i in range(n):
-            newRule = self._randomRuleset()
+            newRule = self.randomRuleset()
             newState = RulesetState(self.evalFunction, self.maxValue, newRule)
             newStates.append(newState)
         return newState
 
-    def _randomRuleset(self):
+    def randomRuleset(self):
         """Generate a random ruleset string"""
         options = "sflr"  # Leaving out the "arbitrary" random behavior
         rules = ""
@@ -125,6 +125,10 @@ class RulesetState(object):
             newString2 = newString2 + (self.ruleString[crossPoint:])
             new1 = RulesetState(self.evalFunction, self.maxValue, newString1)
             new2 = RulesetState(self.evalFunction, self.maxValue, newString2)
+            print("parent 1 rulestring: " + self.ruleString)
+            print("parent 2 rulestring: " + otherState.ruleString)
+            print("child 1: " + newString1)
+            print("child 2: " + newString2)
             return new1, new2
 
     def copyState(self):
@@ -234,15 +238,11 @@ class HillClimber(object):
         bestNeigh = random.choice(bestNeighs)
         return bestNeigh
 
-
-
-
-# TODO: Implement the Genetic Algorithm searcher modeled on the HillClimber above
-
 class GASearcher(object):
-
+    """An algorithm that takes a population of agents, each with a different rulestring, and analyzes their performance
+    to determine which rulestrings should be crossed over with one another."""
     def __init__(self, stateGen, popSize=30, maxGenerations=20, crossPerc=0.8, mutePerc=0.01):
-        self.bestOne = 0
+        self.best = 0
         self.stateGen = stateGen
         self.popSize = popSize
         self.maxGenerations = maxGenerations
@@ -252,9 +252,11 @@ class GASearcher(object):
             print("Making population size even:")
             self.popSize += 1
         self.currStates = []
+        nextState = self.stateGen
         for i in range(self.popSize):
-            nextState = self.stateGen
-            self.currStates.append(nextState)
+            newState = nextState.copyState()
+            self.currStates.append(newState)
+            nextState.ruleString = nextState.randomRuleset()
         self.maxFit = self.currStates[0].getMaxValue()
         self.count = 0
 
@@ -268,8 +270,9 @@ class GASearcher(object):
 
     def getCurrValue(self):
         """Returns the value currently associated with the current state."""
-        return self.currStates[0].getMaxValue()
+        return self.currStates[0].getValue()
 
+    # this doesn't seem to ever be run by ALifeGUI
     def run(self):
         status = None
         while self.count < self.maxGenerations:
@@ -279,19 +282,31 @@ class GASearcher(object):
                 break
 
     def step(self):
-        foundOptimal = False
+        # keep track of the best state (rulestring)
         overallBest = self.currStates[0]
-        self.count += 1
+        # if we've surpsassed the max number of generations, report that we're done
+        if self.count > self.maxGenerations:
+            return 'local maxima'
+        # get the value of each rulestring in the list of current rulestrings
         fits = [state.getValue() for state in self.currStates]
-        if self.maxFit in fits:  # we have an optimal solution
+        # if one of those fitnesses is optimal, we have an optimal rulestring in our current list
+        if self.maxFit in fits:
+            # get the index of the value, which is also the index of the rulestring in fits
             pos = fits.index(self.maxFit)
-            bestOne = self.currStates[pos]
+            # store the optimal rulestring in self.best
+            self.best = self.currStates[pos]
+            # report having found an optimal value
             return 'optimal'
         else:
+            # find the index of the best of the current fitnesses
             bestLoc = fits.index(max(fits))
+            # using that index, identify its matching rulestring
             bestOne = self.currStates[bestLoc]
+            # create the next pool of parents using the current states and their fitnesses
             parentPool = self.selectParents(self.currStates, fits)
-            currStates = self.mateParents(parentPool, self.crossPerc, self.mutePerc)
+            # update the current states by mating parents in the parent pool
+            self.currStates = self.mateParents(parentPool, self.crossPerc, self.mutePerc)
+        # update the overall best rulestring
         if bestOne.getValue() > overallBest.getValue():
             overallBest = bestOne
         if verbose:
@@ -301,7 +316,12 @@ class GASearcher(object):
             print("  Overall best discovered:")
             print(overallBest)
             print("   Number of steps =", self.count)
-        self.bestOne = overallBest
+        # keep track of the best rulestring so far
+        self.best = overallBest
+        # keep track of how many generations it's been
+        # it's possible this is never used by ALifeGUI
+        self.count += 1
+        # tell the program to run another simulation
         return 'keep going'
 
     # TODO: Implement the rest of the genetic alg from the localSearch.py file in the Queens folder
@@ -309,8 +329,12 @@ class GASearcher(object):
     def selectParents(self, states, fitnesses):
         """given a set of states, repeatedly select parents using roulette selection"""
         parents = []
+        # once for every state in the states (parents) list...
         for i in range(len(states)):
+            print("rulestring: " + states[i].ruleString)
+            # select an index based on ratios of fitness
             nextParentPos = self.rouletteSelect(fitnesses)
+            # add the parent at the selected index to the list of parents
             parents.append(states[nextParentPos])
         return parents
 
@@ -318,17 +342,25 @@ class GASearcher(object):
         """Given a set of parents, pair them up and cross them together to make
         new kids"""
         newPop = []
+        # for every other parent...
         for i in range(0, len(parents), 2):
             p1 = parents[i]
             p2 = parents[i + 1]
+            # randomly decide if the parents will be crossed or not
             doCross = random.random()
+            # if so...
             if doCross < crossoverPerc:
+                # create two children
                 n1, n2 = p1.crossover(p2)
+                # add the new children to the population
                 newPop.append(n1)
                 newPop.append(n2)
+            # if not...
             else:
+                # create copies of the parents and add them to the population
                 newPop.append(p1.copyState())
                 newPop.append(p2.copyState())
+        # create random mutations in some members of the population
         for i in range(len(newPop)):
             nextOne = newPop[i]
             doMutate = random.random()
@@ -350,4 +382,5 @@ class GASearcher(object):
             s += valueList[i]
             if s >= pick:
                 return i
+        print("roulette select result: " + len(valueList) - 1)
         return len(valueList) - 1

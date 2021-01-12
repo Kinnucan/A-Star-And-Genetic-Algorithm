@@ -1,1 +1,1 @@
-# homework-2
+# A* and Genetic Algorithm
